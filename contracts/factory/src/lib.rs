@@ -59,9 +59,7 @@ impl FactoryContract {
                 creator.into_val(&env),
                 token.into_val(&env),
                 goal.into_val(&env),
-                deadline.into_val(&env),
-                min_contribution.into_val(&env),
-                no_platform_config.into_val(&env),
+                deadline.into_val(&env)
             ],
         );
 

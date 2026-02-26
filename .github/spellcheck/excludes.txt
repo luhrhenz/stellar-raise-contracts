@@ -7,3 +7,9 @@
 \.wasm$
 \.json$
 ^\.git/
+^frontend/
+^node_modules/
+\.css$
+\.html$
+\.svg$
+\.xml$
