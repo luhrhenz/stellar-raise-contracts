@@ -22,6 +22,7 @@ fn create_token_contract<'a>(
 }
 
 #[test]
+#[ignore = "requires wasm-opt for WASM optimization"]
 fn test_create_single_campaign() {
     let env = Env::default();
     env.mock_all_auths();
@@ -52,6 +53,7 @@ fn test_create_single_campaign() {
 }
 
 #[test]
+#[ignore = "requires wasm-opt for WASM optimization"]
 fn test_create_multiple_campaigns() {
     let env = Env::default();
     env.mock_all_auths();

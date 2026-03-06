@@ -165,9 +165,12 @@ fn test_contribute() {
         &None,
     );
 
+    let contributor = Address::generate(&env);
+    mint_to(&env, &token_address, &admin, &contributor, 10_000);
 
-    assert_eq!(client.total_raised(), 0);
-    assert_eq!(token_client.balance(&creator), creator_before + 1_000_000);
+    client.contribute(&contributor, &5_000);
+    assert_eq!(client.total_raised(), 5_000);
+    assert_eq!(client.contribution(&contributor), 5_000);
 }
 
 #[test]
@@ -189,13 +192,13 @@ fn test_contribute_after_deadline_returns_error() {
         &None,
     );
 
+    let contributor = Address::generate(&env);
+    mint_to(&env, &token_address, &admin, &contributor, 10_000);
 
-    let minted = nft_client.minted();
-    assert_eq!(minted.len(), 2);
-    assert_eq!(minted.get(0).unwrap().to, alice);
-    assert_eq!(minted.get(0).unwrap().token_id, 1);
-    assert_eq!(minted.get(1).unwrap().to, bob);
-    assert_eq!(minted.get(1).unwrap().token_id, 2);
+    env.ledger().set_timestamp(deadline + 1);
+
+    let result = client.try_contribute(&contributor, &5_000);
+    assert!(result.is_err());
 }
 
 #[test]
@@ -217,18 +220,19 @@ fn test_withdraw_skips_nft_minting_when_nft_contract_not_set() {
         &None,
     );
 
-    let nft_contract_id = env.register(MockNftContract, ());
-    let nft_client = MockNftContractClient::new(&env, &nft_contract_id);
+    let contributor = Address::generate(&env);
+    mint_to(&env, &token_address, &admin, &contributor, goal);
+    client.contribute(&contributor, &goal);
 
-
-    assert_eq!(nft_client.minted().len(), 0);
-}
-
-#[test]
-#[should_panic(expected = "not authorized")]
-    // Fast-forward past the deadline.
     env.ledger().set_timestamp(deadline + 1);
 
+    let token_client = token::Client::new(&env, &token_address);
+    let creator_balance_before = token_client.balance(&creator);
+
+    client.withdraw();
+
+    let creator_balance_after = token_client.balance(&creator);
+    assert_eq!(creator_balance_after, creator_balance_before + goal);
 }
 
 #[test]
@@ -351,10 +355,10 @@ fn test_contribute_below_minimum_panics() {
         &None,
     );
 
+    let contributor = Address::generate(&env);
+    mint_to(&env, &token_address, &admin, &contributor, 10_000);
 
-    // Update only socials (should not affect title).
-    let socials = soroban_sdk::String::from_str(&env, "https://twitter.com/new");
-    client.update_metadata(&creator, &None, &None, &Some(socials));
+    client.contribute(&contributor, &500);
 }
 
 #[test]
@@ -377,3 +381,6 @@ fn test_update_metadata_when_not_active_panics() {
         &None,
     );
 
+    client.cancel();
+    client.update_metadata(&creator, &None, &None, &None);
+}
